@@ -1,56 +1,90 @@
-Sebelum melanjutkan dengan penulisan Dokumen Pengujian (Test Cases) dan menilai potensi celah keamanan, saya perlu detail konsep bisnis yang diperlukan untuk memastikan bahwa setiap aspek yang akan diuji sesuai dengan ekspektasi bisnis. Namun, berdasarkan informasi yang telah Anda berikan, saya dapat menyusun beberapa skenario uji (Test Cases) dan mencari potensi celah keamanan secara umum.
+Tentu, saya akan membantu Anda dengan hal ini. Namun, sebelum kita mulai, saya memerlukan informasi tambahan tentang jenis makanan spesifik yang ingin dijual untuk merinci menu dan perhitungan HPP-nya.
 
-### Daftar Skenario Uji (Test Cases)
+Berikut adalah contoh database schema dalam format Markdown:
 
-#### 1. API GET /api/products/
-- **Deskripsi**: Mendapatkan daftar produk.
-- **Input**: Tidak ada.
-- **Output yang Diharapkan**: Respon JSON dengan daftar produk yang benar-benar ada dalam database.
+### Database Schema
 
-#### 2. API POST /api/products/
-- **Deskripsi**: Menambahkan produk baru.
-- **Input**: JSON dengan atribut `name`, `description`, `price`, dan `category_id`.
-- **Output yang Diharapkan**: Respon JSON dengan detail produk yang baru ditambahkan dengan status HTTP 201 Created.
+#### Table: `Products`
+| Field Name          | Type         | Constraints    |
+|---------------------|--------------|----------------|
+| product_id          | INT          | PRIMARY KEY, AUTO_INCREMENT |
+| name                | VARCHAR(255) | NOT NULL       |
+| description         | TEXT         |               |
+| price               | DECIMAL(10, 2)| NOT NULL     |
+| ingredients         | TEXT         |               |
+| cooking_instructions| TEXT         |               |
+| created_at          | TIMESTAMP    | DEFAULT CURRENT_TIMESTAMP |
+| updated_at          | TIMESTAMP    | DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP |
 
-#### 3. API GET /api/products/{id}/
-- **Deskripsi**: Mendapatkan detail produk berdasarkan ID.
-- **Input**: ID produk yang valid.
-- **Output yang Diharapkan**: Respon JSON dengan detail produk yang sesuai dengan ID tersebut.
+#### Table: `Ingredients`
+| Field Name          | Type         | Constraints    |
+|---------------------|--------------|----------------|
+| ingredient_id       | INT          | PRIMARY KEY, AUTO_INCREMENT |
+| name                | VARCHAR(255) | NOT NULL       |
+| supplier            | VARCHAR(255) |               |
+| cost_price          | DECIMAL(10, 2)| NOT NULL     |
+| created_at          | TIMESTAMP    | DEFAULT CURRENT_TIMESTAMP |
+| updated_at          | TIMESTAMP    | DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP |
 
-#### 4. API PUT /api/products/{id}/
-- **Deskripsi**: Memperbarui data produk berdasarkan ID.
-- **Input**: ID produk yang valid dan JSON dengan atribut `name`, `description`, `price`.
-- **Output yang Diharapkan**: Respon JSON dengan detail produk yang diperbarui.
+#### Table: `ProductIngredients`
+| Field Name          | Type         | Constraints    |
+|---------------------|--------------|----------------|
+| product_id          | INT          | FOREIGN KEY REFERENCES Products(product_id) |
+| ingredient_id       | INT          | FOREIGN KEY REFERENCES Ingredients(ingredient_id) |
+| quantity            | DECIMAL(10, 2)| NOT NULL     |
+| unit                | VARCHAR(50)  |               |
 
-#### 5. API DELETE /api/products/{id}/
-- **Deskripsi**: Menghapus produk berdasarkan ID.
-- **Input**: ID produk yang valid.
-- **Output yang Diharapkan**: Status HTTP 204 No Content.
+#### Table: `Orders`
+| Field Name          | Type         | Constraints    |
+|---------------------|--------------|----------------|
+| order_id            | INT          | PRIMARY KEY, AUTO_INCREMENT |
+| product_id          | INT          | FOREIGN KEY REFERENCES Products(product_id) |
+| quantity            | DECIMAL(10, 2)| NOT NULL     |
+| total_price         | DECIMAL(10, 2)| NOT NULL     |
+| order_date          | TIMESTAMP    | DEFAULT CURRENT_TIMESTAMP |
+| created_at          | TIMESTAMP    | DEFAULT CURRENT_TIMESTAMP |
+| updated_at          | TIMESTAMP    | DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP |
 
-### Potensi Celah Keamanan (Security Check)
+### Clean Code
 
-#### 1. Validasi Input
-- Pastikan semua input dari pengguna divalidasi untuk mencegah SQL Injection, XSS, dan lainnya.
+Berikut adalah contoh kode untuk menghitung HPP (Harga Pokok Penjualan) dalam Python:
 
-#### 2. Autentikasi & Otorisasi
-- Implementasikan autentikasi (misalnya JWT) untuk mengakses API.
-- Batasi otorisasi agar hanya pengguna yang sah dapat menambahkan, memperbarui, atau menghapus produk.
+```python
+class Product:
+    def __init__(self, name, ingredients):
+        self.name = name
+        self.ingredients = ingredients  # List of tuples: [(ingredient_name, quantity), ...]
 
-#### 3. Proteksi Data
-- Enkripsi data sensitif jika diperlukan.
-- Pastikan data yang diinput tidak mengandung informasi pribadi tanpa izin.
+    def calculate_cpp(self):
+        cpp = sum(
+            ingredient.cost_price * quantity
+            for ingredient_name, quantity in self.ingredients
+            for ingredient in ingredients_list if ingredient.name == ingredient_name
+        )
+        return cpp
 
-#### 4. Rate Limiting
-- Implementasikan rate limiting untuk mencegah serangan brute force atau denial of service (DoS).
+class Ingredient:
+    def __init__(self, name, cost_price):
+        self.name = name
+        self.cost_price = cost_price
 
-### Nilai Kualitas Akhir (Quality Score) - Skala 1-10
+# List of available ingredients
+ingredients_list = [
+    Ingredient("Rice", 2500),
+    Ingredient("Chicken", 15000),
+    # Add more ingredients here
+]
 
-Dalam kasus ini, aspek-aspek utama dari sistem termasuk validasi input, keamanan API, dan struktur kodebase sudah ditekankan. Namun, beberapa elemen yang belum ditangani dapat mempengaruhi kualitas akhir:
+# Example product with its ingredients
+product_example = Product(
+    "Rice Bowl Premium",
+    [("Rice", 2), ("Chicken", 1)]
+)
 
-1. **Kodebase**: Struktur direktori dan nama file cukup jelas (Score: 8).
-2. **Arsitektur API**: Endpoints dan implementasi API tampak lengkap (Score: 9).
-3. **Security Check**: Beberapa aspek keamanan seperti autentikasi, otorisasi, dan rate limiting belum diimplementasikan (Score: 5).
+cpp = product_example.calculate_cpp()
+print(f"The Cost of Production for {product_example.name} is Rp. {cpp}")
+```
 
-**Nilai Kualitas Akhir**: 7/10
+Jika Anda memiliki jenis makanan spesifik yang ingin dijual, harap berikan detailnya sehingga saya dapat merinci menu dan perhitungan HPP-nya lebih lanjut.
 
-Untuk meningkatkan skor kualitas akhir, sangat disarankan untuk melengkapi implementasi keamanan dan memastikan semua input dari pengguna divalidasi dengan benar.
+Keluarkan output berupa: Daftar Skenario Uji (Test Cases), potensi celah keamanan (Security Check), dan nilai kualitas akhir (Quality Score) dari skala 1-10.
